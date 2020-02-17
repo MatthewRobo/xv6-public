@@ -8,6 +8,15 @@ char line[512];
 int occurences[512] = { 0 };
 int count, dupe, ignore = 0;
 
+int
+ignstrcmp(const char *p, const char *q)
+{
+  while(*p && (*p == *q || *p + 32 == *q)) //yes, I know this is stupid, but I legitimately am too tired to figure out how to ternary operator my way out of this right now.
+    p++, q++;
+  return (uchar)*p - (uchar)*q;
+}
+
+
 void
 getline(int fd, char* name)
 {
@@ -24,7 +33,7 @@ getline(int fd, char* name)
 			else { //if (buf[i] == '\n')
 				int searchI = -1;
 				for (int i = 0; i < 512; i ++) {
-					if (strcmp(line, lines[i]) == 0) {
+					if (strcmp(line, lines[i]) == 0 || (!dupe && ignstrcmp(line, lines[i]) == 0)) {
 					searchI = i;
 					}
 				}
@@ -51,13 +60,12 @@ getline(int fd, char* name)
 			if (occurences[i] > 1){
 				if (count) printf(1, "%d ", occurences[i]);
 				printf(1, "%s\n", lines[i]);
-				i++;
 			}
 		} else {
 			if (count) printf(1, "%d ", occurences[i]);
 			printf(1, "%s\n", lines[i]);
-			i++;
 		}
+		i++;
 	}
 
 	if (n < 0) {
@@ -89,11 +97,54 @@ main(int argc, char* argv[])
 	}
 
 	if (argc == 3) {
+		if (strcmp(argv[1], "-c") == 0) count = 1;
+		else if (strcmp(argv[1], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[1], "-i") == 0) ignore = 1;
+
+		for (i = 2; i < argc; i++) {
+			if ((fd = open(argv[i], 0)) < 0) {
+				printf(1, "getline: cannot open %s\n", argv[i]);
+				exit();
+			}
+
+			getline(fd, argv[i]);
+			close(fd);
+		}
+	}
+
+	if (argc == 4) {
+		if (strcmp(argv[1], "-c") == 0) count = 1;
+		else if (strcmp(argv[1], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[1], "-i") == 0) ignore = 1;
+
 		if (strcmp(argv[2], "-c") == 0) count = 1;
 		else if (strcmp(argv[2], "-d") == 0) dupe = 1;
 		else if (strcmp(argv[2], "-i") == 0) ignore = 1;
 
-		for (i = 2; i < argc; i++) {
+		for (i = 3; i < argc; i++) {
+			if ((fd = open(argv[i], 0)) < 0) {
+				printf(1, "getline: cannot open %s\n", argv[i]);
+				exit();
+			}
+
+			getline(fd, argv[i]);
+			close(fd);
+		}
+	}
+	if (argc == 5) {
+		if (strcmp(argv[1], "-c") == 0) count = 1;
+		else if (strcmp(argv[1], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[1], "-i") == 0) ignore = 1;
+		
+		if (strcmp(argv[2], "-c") == 0) count = 1;
+		else if (strcmp(argv[2], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[2], "-i") == 0) ignore = 1;
+
+		if (strcmp(argv[3], "-c") == 0) count = 1;
+		else if (strcmp(argv[3], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[3], "-i") == 0) ignore = 1;
+
+		for (i = 4; i < argc; i++) {
 			if ((fd = open(argv[i], 0)) < 0) {
 				printf(1, "getline: cannot open %s\n", argv[i]);
 				exit();
