@@ -1,54 +1,56 @@
-#pragma once
 #include "types.h"
 #include "stat.h"
 #include "user.h"
 
-char buf[4096];
-char line[4096];
-char* dupes[8192];
-int occurences[8192] = { 0 };
-
-int
-strnsrch(const char* t, const char* region[], uint n)
-{
-	for (int i = 0; i < sizeof(*region); i ++) {
-		if (strncmp(t, region[i],  n) == 0) {
-			return i;
-		}
-	}
-
-	return -1;
-}
+char buf[512];
+char lines[512][512] = {0};
+char line[512];
+int occurences[512] = { 0 };
 
 
 void
 getline(int fd, char* name)
 {
-	int i, n;
+	int n;
 	int l, c;
-	int dupeI;
+	// int dupeI;
 	l = c = 0;
-
 	while ((n = read(fd, buf, sizeof(buf))) > 0) {
-		for (i = 0; i < n; i++) {
-			if (buf[i] == '\n') {
-				strncpy(dupes[l], line, c);
-				dupeI = strnsrch(line, dupes[], c);
-
-				if (dupeI > -1) {
-					occurences[dupeI] ++;
-					dupeI++;
-				} else {
-					occurences[l] ++;
-					l++;
-				}
-
-				c = 0;
-			} else {
+		for (int i = 0; i < n; i++) {
+			if (buf[i] != '\n') {
 				line[c] = buf[i];
 				c++;
 			}
+			else { //if (buf[i] == '\n')
+				int searchI = -1;
+				for (int i = 0; i < 512; i ++) {
+					if (strcmp(line, lines[i]) == 0) {
+					searchI = i;
+					}
+				}
+
+				if (searchI > -1){
+					occurences[searchI]++;
+				}
+				else {
+					for (int i = 0; i < c; i++) {
+						lines[l][i] = line[i];
+					}
+					occurences[l] ++;
+					lines[l][i] = '\0';
+					l++;
+				}
+				c = 0;
+			}
+			lines[l][c] = '\0';
 		}
+	}
+	int i = 0;
+	while (i < l){
+		printf(1, "%d: ", lines[i]);
+		printf(1, "%s", lines[i]);
+		printf(1, "\n");
+		i++;
 	}
 
 	if (n < 0) {
