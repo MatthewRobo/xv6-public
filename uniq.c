@@ -6,7 +6,7 @@ char buf[512];
 char lines[512][512] = {0};
 char line[512];
 int occurences[512] = { 0 };
-
+int count, dupe, ignore = 0;
 
 void
 getline(int fd, char* name)
@@ -47,10 +47,17 @@ getline(int fd, char* name)
 	}
 	int i = 0;
 	while (i < l){
-		printf(1, "%d: ", lines[i]);
-		printf(1, "%s", lines[i]);
-		printf(1, "\n");
-		i++;
+		if (dupe) {
+			if (occurences[i] > 1){
+				if (count) printf(1, "%d ", occurences[i]);
+				printf(1, "%s\n", lines[i]);
+				i++;
+			}
+		} else {
+			if (count) printf(1, "%d ", occurences[i]);
+			printf(1, "%s\n", lines[i]);
+			i++;
+		}
 	}
 
 	if (n < 0) {
@@ -69,14 +76,32 @@ main(int argc, char* argv[])
 		exit();
 	}
 
-	for (i = 1; i < argc; i++) {
-		if ((fd = open(argv[i], 0)) < 0) {
-			printf(1, "getline: cannot open %s\n", argv[i]);
-			exit();
-		}
+	if (argc == 2) {
+		for (i = 1; i < argc; i++) {
+			if ((fd = open(argv[i], 0)) < 0) {
+				printf(1, "getline: cannot open %s\n", argv[i]);
+				exit();
+			}
 
-		getline(fd, argv[i]);
-		close(fd);
+			getline(fd, argv[i]);
+			close(fd);
+		}
+	}
+
+	if (argc == 3) {
+		if (strcmp(argv[2], "-c") == 0) count = 1;
+		else if (strcmp(argv[2], "-d") == 0) dupe = 1;
+		else if (strcmp(argv[2], "-i") == 0) ignore = 1;
+
+		for (i = 2; i < argc; i++) {
+			if ((fd = open(argv[i], 0)) < 0) {
+				printf(1, "getline: cannot open %s\n", argv[i]);
+				exit();
+			}
+
+			getline(fd, argv[i]);
+			close(fd);
+		}
 	}
 
 	exit();
