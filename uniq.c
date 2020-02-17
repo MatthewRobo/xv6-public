@@ -8,19 +8,38 @@ char line[4096];
 char* dupes[8192];
 int occurences[8192] = { 0 };
 
+char*
+strnsrch(const char* t, const char* region[], uint n)
+{
+	while (i = 0; i < sizeof(region); i ++) {
+		if (strncmp(t, region[i],  n) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+
 void
 getline(int fd, char* name)
 {
 	int i, n;
 	int l, c;
+	int dupeI;
 	l = c = 0;
 
 	while ((n = read(fd, buf, sizeof(buf))) > 0) {
 		for (i = 0; i < n; i++) {
 			if (buf[i] == '\n') {
 				strncpy(dupes[l], line, c);
-				occurences[l] ++;
-				l++;
+				dupeI = strnsrch(line, dupes[], c);
+				if (dupeI > -1) {
+					occurences[dupeI] ++;
+					dupeI++;
+				} else {
+					occurences[l] ++;
+					l++;
+				}
 				c = 0;
 			} else {
 				line[c] = buf[i];
